@@ -67,13 +67,18 @@ KISSY.add('swf', function (S, DOM, JSON, Base, FlashUA, undefined) {
             placeHolder = DOM.create('<span>', undefined, doc),
             elBefore = self.get('elBefore'),
             installedSrc = self.get('src'),
-            version = self.get('version');
+            version = self.get('version'),
+            callback = self.get('callback');
 
         id = attrs.id = attrs.id || S.guid('ks-swf-');
 
         // 2. flash 插件没有安装
         if (!fpv()) {
             self.set('status', SWF.Status.NOT_INSTALLED);
+            callback && callback.call(self, {
+                status: SWF.Status.NOT_INSTALLED,
+                id: id
+            });
             return;
         }
 
@@ -146,6 +151,12 @@ KISSY.add('swf', function (S, DOM, JSON, Base, FlashUA, undefined) {
         if (!self.get('status')) {
             self.set('status', SWF.Status.SUCCESS);
         }
+
+        callback && callback.call(self, {
+            status: self.get('status'),
+            id: id,
+            el: self.get('el')
+        });
     }
 
     S.extend(SWF, Base, {
@@ -361,6 +372,12 @@ KISSY.add('swf', function (S, DOM, JSON, Base, FlashUA, undefined) {
              */
             htmlMode: {
                 value: 'default'
+            },
+            /**
+             * that is called on both success or failure of creating a Flash plug-in <object> on the page
+             * @cfg {Function} callback
+             */
+            callback:{
             }
         },
 
@@ -561,6 +578,37 @@ KISSY.add('swf', function (S, DOM, JSON, Base, FlashUA, undefined) {
          */
         FULL: 'full'
     };
+
+
+    SWF.registerSWF = function(id,version,expressInstall,callback,doc){
+        doc = doc || document;
+        if(typeof version === 'function'){
+            callback = version;
+            version = '9.0.0';
+            expressInstall = SWF.ATTRS.expressInstall.value;
+        }
+        if(typeof expressInstall === 'function'){
+            callback = expressInstall;
+            expressInstall = SWF.ATTRS.expressInstall.value;
+        }
+        S.ready(function(){
+            if(fpv()&&(!version || fpvGTE(version))){
+                var el = DOM.get('#'+id,doc);
+                callback && callback({
+                    status: SWF.Status.SUCCESS,
+                    id: id,
+                    el: el
+                });
+                return;
+            }
+            new SWF({
+                version:version,
+                expressInstall:expressInstall,
+                callback:callback,
+                document:doc
+            });
+        })
+    }
 
     return SWF;
 }, {
