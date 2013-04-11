@@ -579,7 +579,14 @@ KISSY.add('swf', function (S, DOM, JSON, Base, FlashUA, undefined) {
         FULL: 'full'
     };
 
-
+    /**
+     * 注册静态flash（不成熟，暂时不要合并）
+     * @param  {String}   id             flash id
+     * @param  {String}   version        版本
+     * @param  {String}   expressInstall 版本低替换路径
+     * @param  {Function} callback       回调函数
+     * @param  {document}   doc          document
+     */
     SWF.registerSWF = function(id,version,expressInstall,callback,doc){
         doc = doc || document;
         if(typeof version === 'function'){
